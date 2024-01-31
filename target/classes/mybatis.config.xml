@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <settings>
+        <!-- 使用驼峰命名法 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 日志输出，可以打印sql-->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+    </settings>
+
+    <typeAliases>
+        <typeAlias type="com.lr.po.UserInfo" alias="UserInfo"/>
+    </typeAliases>
+
+    <!--The <plugins> element allows adding custom plugins to MyBatis to change or extend its behavior.-->
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <property name="param1" value="value1"/>
+        </plugin>
+    </plugins>
+
+    <!--The <environments> element defines environments that MyBatis can operate in, such as specifying the database
+    connection and transaction management.-->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/db1"/>
+                <property name="username" value="root"/>
+                <property name="password" value="12345678"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--Mapping Java Obj to DataBase Tables-->
+    <mappers>
+        <mapper resource="UserInfoMapper.xml"/>
+        <mapper resource="BlogDao.xml"/>
+    </mappers>
+
+</configuration>

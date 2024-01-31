@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--这个mapper要和UIM class进行绑定，因为又可能有其它mapper 那各自对应mapping就很重要-->
+<mapper namespace="com.lr.mapper.UserInfoMapper">
+
+    <resultMap id="userInfoResult" type="com.lr.po.UserInfo">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="userPassword" column="user_password"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap id="blogResult" type="com.lr.po.UserInfoAndBlogListPO">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <!--blogList对应的是Blog类型，需要放整个path-->
+        <collection property="blogList" ofType="com.lr.po.Blog">
+            <result property="blogTitle" column="blog_title" jdbcType="VARCHAR"/>
+            <result property="blogContent" column="blog_content" jdbcType="VARCHAR"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="selectUserInfoById" resultMap="userInfoResult">
+        select * from user_info where user_id = #{id}
+    </select>
+
+    <select id="selectAllUsers" resultMap="userInfoResult">
+        select * from user_info
+    </select>
+
+    <!--不用resultType，因为insert结果就是1/0代表插入成功或失败-->
+    <insert id="insertUserInfo">
+            insert into user_info(username, user_password) values (#{username}, #{userPassword})
+    </insert>
+
+    <update id="updateUsernameById">
+        update user_info set username = #{Name} where user_id = #{ID}
+    </update>
+
+    <delete id="deleteUserById" parameterType="java.lang.Long">
+        delete from user_info where user_id = #{id}
+    </delete>
+
+   <select id="queryUserInfoByUsernameAndPwd" resultMap="userInfoResult">
+       select * from user_info where username = #{name} and user_password = #{pass}
+   </select>
+
+    <!--如果password填了就加，不填就不加-->
+    <select id="queryUserInfoByUsernameOrPwd" resultType="UserInfo" parameterType="UserInfo">
+        SELECT * FROM user_info
+        WHERE username = #{username}
+        <if test="userPassword != null and userPassword !='' ">
+            AND user_password = #{userPassword}
+        </if>
+    </select>
+
+    <select id="queryUserInfoByParameters" resultType="UserInfo" parameterType="UserInfo">
+        SELECT * FROM user_info
+        <!-- where标签相当于1=1(true) and，以防后面if条件语句不执行 多出来where引起sql syntax error-->
+        <where>
+            <if test="username != null and username !='' ">
+                username = #{username}
+            </if>
+            <if test="userPassword != null and userPassword !='' ">
+                AND user_password = #{userPassword}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateUserInfoByPara">
+        update user_info
+        <set>
+            <if test="username != null and username !=''">
+                username=#{username}
+            </if>
+            <if test="userPassword != null and userPassword !=''">
+                user_password=#{userPassword}
+            </if>
+
+        </set>
+        where user_id = #{userId}
+    </update>
+
+    <!--    一对一多表查询  -->
+    <select id="queryUserInfoAndBlogByUserId" resultType="com.lr.po.UserInfoAndBlogPO">
+        select a.user_id, a.username, b.blog_title, b.blog_content, b.create_time, b.update_time, b.blog_id from user_info a left join blog b on a.user_id = b.user_id where a.user_id = #{userId} ;
+    </select>
+
+    <!--    一对多多表查询  -->
+    <select id="queryUserInfoAndBlogListByUserId" resultMap="blogResult">
+        select a.user_id, a.username, b.blog_title, b.blog_content, b.create_time, b.update_time, b.blog_id from user_info a left join blog b on a.user_id = b.user_id where a.user_id = #{userId} ;
+    </select>
+
+    <!--    多对多多表查询， 和一对多很像， 不同就在于不指定用id去查了，  删除 where a.user_id =#{userId}这个操作 -->
+    <select id="queryUserInfoAndBlogList" resultMap="blogResult">
+        select a.user_id, a.username, b.blog_title, b.blog_content, b.create_time, b.update_time, b.blog_id from user_info a left join blog b on a.user_id = b.user_id;
+    </select>
+
+    <select id="queryBlogsByIds" resultMap="blogResult" parameterType="java.lang.Long">
+        select * from blog
+        where user_id = #{userId}
+    </select>
+
+</mapper>
+
+    <!--除了像上面可以用resultMap进行俩variables互相映射，还可以使用resultType="类名"（+alias别名）-->
+    <!--
+        <select id="selectUser" resultType="UserInfo">
+            select * from user_info where user_id = #{id}
+        </select>
+        mybatis.config.xml:
+        configuration里，settings外面加上below statements
+
+        配置别名:
+        <typeAliases>
+            <typeAlias type="com.lr.po.UserInfo" alias="UserInfo"/>
+        </typeAliases>
+    -->
